@@ -7,6 +7,9 @@ import (
 	"gorm.io/gorm"
 )
 
+// 全局 DB 变量，供其他包使用
+var DB *gorm.DB
+
 // User 用户结构体
 type User struct {
 	gorm.Model
@@ -127,17 +130,18 @@ type ResponseData struct {
 	Content    string `gorm:"column:Content"`
 }
 
+// InitDb 初始化数据库连接
 func InitDb() {
 	// 数据库连接信息
 	dsn := "user:password@/dbname?charset=utf8&parseTime=True&loc=Local"
 
 	// 打开数据库连接
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	var err error
+	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}
 
 	// 自动迁移模式
-	db.AutoMigrate(&User{}, &Survey{}, &Question{}, &QuestionOption{}, &TextFillIn{}, &NumFillIn{}, &Response{}, &ResponseData{})
-
+	DB.AutoMigrate(&User{}, &Survey{}, &Question{}, &QuestionOption{}, &TextFillIn{}, &NumFillIn{}, &Response{}, &ResponseData{})
 }
