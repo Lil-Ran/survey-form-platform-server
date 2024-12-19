@@ -1,6 +1,7 @@
 package common
 
 import (
+	"fmt"
 	"time"
 
 	"gorm.io/driver/mysql"
@@ -41,13 +42,13 @@ type Survey struct {
 	PCBannerImage     string     `gorm:"column:PCBannerImage"`       // PC横幅图片
 	Footer            string     `gorm:"column:Footer"`              // 页脚
 	DisplayStyle      int        `gorm:"column:DisplayStyle"`        // 显示样式
-	ButtonText        []string   `gorm:"column:ButtonText"`          // 按钮文本
+	ButtonText        string     `gorm:"type:json"`                  // JSON 存储
 	StartTime         time.Time  `gorm:"column:StartTime"`           // 开始时间
 	EndTime           time.Time  `gorm:"column:EndTime"`             // 结束时间
 	DayStartTime      time.Time  `gorm:"column:DayStartTime"`        // 每日开始时间
 	DayEndTime        time.Time  `gorm:"column:DayEndTime"`          // 每日结束时间
 	PasswordStrategy  int        `gorm:"column:PasswordStrategy"`    // 密码策略
-	Password          []string   `gorm:"column:Password"`            // 密码
+	Password          string     `gorm:"type:json"`                  // JSON 存储
 	MaxResponseCount  int        `gorm:"column:MaxResponseCount"`    // 最大响应数量
 	BrowserLimit      bool       `gorm:"column:BrowserLimit"`        // 浏览器限制
 	IPLimit           bool       `gorm:"column:IPLimit"`             // IP限制
@@ -140,16 +141,18 @@ type EmailVerification struct {
 
 // InitDb 初始化数据库连接
 func InitDb() {
-	// 数据库连接信息
-	dsn := "user:password@/dbname?charset=utf8&parseTime=True&loc=Local"
-
-	// 打开数据库连接
+	dsn := "root:2010huang@tcp(127.0.0.1:3306)/survey?charset=utf8mb4&parseTime=True&loc=Local"
 	var err error
 	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
-		panic("failed to connect database")
+		panic("failed to connect database: " + err.Error())
 	}
 
-	// 自动迁移模式
-	DB.AutoMigrate(&User{}, &Survey{}, &Question{}, &QuestionOption{}, &TextFillIn{}, &NumFillIn{}, &Response{}, &ResponseData{}, &EmailVerification{})
+	// 打印日志，确认自动迁移开始
+	fmt.Println("Starting AutoMigrate...")
+	err = DB.AutoMigrate(&User{}, &Survey{}, &Question{}, &QuestionOption{}, &TextFillIn{}, &NumFillIn{}, &Response{}, &ResponseData{}, &EmailVerification{})
+	if err != nil {
+		panic("failed to migrate database: " + err.Error())
+	}
+	fmt.Println("Database migration completed!")
 }

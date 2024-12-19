@@ -2,12 +2,16 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"math/rand"
 	"net/smtp"
-	"server/common"
-	"time"
-	"github.com/google/uuid"
 	"regexp"
+	"server/common"
+	"server/config"
+	"strings"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 // RegisterUser 注册用户
@@ -66,6 +70,10 @@ func SendEmailCode(email string) error {
 
 	// 发送邮件
 	if err := sendEmail(email, code); err != nil {
+		if strings.Contains(err.Error(), "short response") {
+			return nil
+		}
+		// fmt.Printf("SendMail returned error: %v\n", err)
 		return errors.New("failed to send email")
 	}
 
@@ -84,23 +92,26 @@ func generateRandomCode(length int) string {
 
 // sendEmail 发送邮件
 func sendEmail(to, code string) error {
-	from := "your-email@example.com"
-	password := "your-email-password"
-
-	// 设置SMTP服务器信息
-	smtpHost := "smtp.example.com"
-	smtpPort := "587"
+	from := config.Config.SMTP.From
+	password := config.Config.SMTP.Password
+	smtpHost := config.Config.SMTP.Host
+	smtpPort := config.Config.SMTP.Port
 
 	// 设置邮件内容
-	subject := "Subject: Your Verification Code\n"
-	body := "Your verification code is: " + code
-	message := []byte(subject + "\n" + body)
+	subject := "Subject: Your Verification Code\n\n"
+	fromHeader := fmt.Sprintf("From: SURVEY—FORM <%s>\n", from)
+	toHeader := fmt.Sprintf("To: %s\n", to)
+	body := fmt.Sprintf("Your verification code is: %s\n", code)
+
+	// 构建完整的邮件内容
+	message := []byte(fromHeader + toHeader + subject + "\n" + body)
 
 	// 认证信息
 	auth := smtp.PlainAuth("", from, password, smtpHost)
 
 	// 发送邮件
 	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, []string{to}, message)
+
 	if err != nil {
 		return err
 	}
@@ -124,9 +135,10 @@ func isValidPassword(password string) bool {
 	hasLower := regexp.MustCompile(`[a-z]`).MatchString(password)
 	hasUpper := regexp.MustCompile(`[A-Z]`).MatchString(password)
 	hasDigit := regexp.MustCompile(`\d`).MatchString(password)
-	hasSpecial := regexp.MustCompile(`[@$!%*?&]`).MatchString(password)
+	// hasSpecial := regexp.MustCompile(`[@$!%*?&]`).MatchString(password)
 
-	return hasLower && hasUpper && hasDigit && hasSpecial
+	return hasLower && hasUpper && hasDigit
+	// return true
 }
 
 // LoginUser 用户登录
@@ -175,4 +187,3 @@ func ResetPassword(email, newPassword, emailCode string) error {
 
 	return nil
 }
-

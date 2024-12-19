@@ -3,6 +3,7 @@ package controllers
 import (
 	"net/http"
 	"server/services"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,7 +14,7 @@ func RegisterUser(c *gin.Context) {
 		UserName  string `json:"userName" binding:"required,min=4,max=64"` // 用户名，必填，长度4-64
 		Password  string `json:"password" binding:"required,min=8"`        // 密码，必填，最小长度8
 		Email     string `json:"email" binding:"required,email"`           // 邮箱，必填，必须是有效邮箱格式
-		EmailCode string `json:"emailCode" binding:"required,len=6,regexp=^[0-9]{6}$"` // 邮箱验证码，必填，长度6，必须是数字
+		EmailCode string `json:"emailCode" binding:"required,len=6"`       // 邮箱验证码，必填，长度6，必须是数字
 	}
 
 	// 绑定JSON请求体到结构体，并验证参数
@@ -63,8 +64,8 @@ func RequestEmailCode(c *gin.Context) {
 func LoginUser(c *gin.Context) {
 	// 定义请求结构体，包含用户名或邮箱和密码
 	var request struct {
-		UserNameOrEmail string `json:"userNameOrEmail" binding:"required,min=4,max=64"` // 用户名或邮箱，必填，长度4-64
-		Password        string `json:"password" binding:"required,min=8"`               // 密码，必填，最小长度8
+		UserNameOrEmail string `json:"userName" binding:"required,min=4,max=64"` // 用户名或邮箱，必填，长度4-64
+		Password        string `json:"password" binding:"required,min=8"`        // 密码，必填，最小长度8
 	}
 
 	// 绑定JSON请求体到结构体，并验证参数
@@ -136,8 +137,8 @@ func LogoutUser(c *gin.Context) {
 func ResetPassword(c *gin.Context) {
 	// 定义请求结构体，包含密码、邮箱和邮箱验证码
 	var request struct {
-		Password  string `json:"password" binding:"required,min=8"`        // 密码，必填，最小长度8
-		Email     string `json:"email" binding:"required,email"`           // 邮箱，必填，必须是有效邮箱格式
+		Password  string `json:"password" binding:"required,min=8"`                    // 密码，必填，最小长度8
+		Email     string `json:"email" binding:"required,email"`                       // 邮箱，必填，必须是有效邮箱格式
 		EmailCode string `json:"emailCode" binding:"required,len=6,regexp=^[0-9]{6}$"` // 邮箱验证码，必填，长度6，必须是数字
 	}
 
@@ -158,4 +159,3 @@ func ResetPassword(c *gin.Context) {
 	// 重置成功，返回200状态码
 	c.JSON(http.StatusOK, gin.H{"message": "Password reset successful", "code": 200})
 }
-
