@@ -2,6 +2,7 @@ package common
 
 import (
 	"fmt"
+	"server/config"
 	"time"
 
 	"gorm.io/driver/mysql"
@@ -141,7 +142,13 @@ type EmailVerification struct {
 
 // InitDb 初始化数据库连接
 func InitDb() {
-	dsn := "root:2010huang@tcp(127.0.0.1:3306)/survey?charset=utf8mb4&parseTime=True&loc=Local"
+	ds := config.Config.Datasource
+
+	dsn := fmt.Sprintf(
+		"%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=True&loc=Local",
+		ds.Username, ds.Password, ds.Host, ds.Port, ds.DBName, ds.Charset,
+	)
+
 	var err error
 	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
