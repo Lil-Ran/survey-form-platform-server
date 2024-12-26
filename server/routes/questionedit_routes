@@ -1,0 +1,18 @@
+package routes
+
+import (
+	"net/http"
+	"server/controllers"
+
+	"github.com/gorilla/mux"
+)
+
+// RegisterQuestionEditRoutes 注册问卷题目相关的路由
+func RegisterQuestionEditRoutes(r *mux.Router) {
+	r.HandleFunc("/api/surveys/{surveyId}/meta", controllers.GetSurveyMetaHandler).Methods(http.MethodGet)
+	r.HandleFunc("/api/surveys/{surveyId}/questions", controllers.GetSurveyQuestionsHandler).Methods(http.MethodGet)
+	r.HandleFunc("/api/surveys/{surveyId}/questions", controllers.AddSurveyQuestionHandler).Methods(http.MethodPost)
+	r.HandleFunc("/api/surveys/{surveyId}/questions/{questionId}", controllers.EditSurveyQuestionHandler).Methods(http.MethodPut)
+	r.HandleFunc("/api/surveys/{surveyId}/questions/{questionId}", controllers.DeleteSurveyQuestionHandler).Methods(http.MethodDelete)
+	r.HandleFunc("/api/surveys/{surveyId}/questions/move", controllers.MoveSurveyQuestionHandler).Methods(http.MethodPost)
+}
