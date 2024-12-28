@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
@@ -158,12 +159,25 @@ func LoginUser(userNameOrEmail, password string) (*common.User, error) {
 }
 
 // GetUserInfoByToken 根据token获取用户信息
-func GetUserInfoByToken(token string) (*common.User, error) {
+func GetUserInfoByToken(c *gin.Context) (*common.User, error) {
+	// 通过 GetCookie 提取并验证 Cookie 中的 JWT
+	claims, err := GetCookie(c)
+	if err != nil {
+		return nil, errors.New("unauthorized: invalid or missing token")
+	}
+
+	// 从 claims 中提取 userID
+	userID, ok := claims["userID"].(string)
+	if !ok {
+		return nil, errors.New("invalid token claims")
+	}
+
+	// 根据 userID 查询用户信息
 	var user common.User
-	//根据token查找用户
-	if err := common.DB.Where("UserID = ?", token).First(&user).Error; err != nil {
+	if err := common.DB.Where("UserID = ?", userID).First(&user).Error; err != nil {
 		return nil, errors.New("user not found")
 	}
+
 	return &user, nil
 }
 

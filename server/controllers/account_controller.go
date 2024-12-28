@@ -83,25 +83,20 @@ func LoginUser(c *gin.Context) {
 		return
 	}
 
-	// 将userId存储在cookie中
-	c.SetCookie("token", user.UserID, 3600, "/", "localhost", false, true)
-
+	// 调用 cookie_service 设置 Cookie
+	err = services.SetCookie(c, user.UserID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to set cookie"})
+		return
+	}
 	// 登录成功，返回200状态码
 	c.JSON(http.StatusOK, gin.H{"message": "Login successful", "code": 200})
 }
 
 // GetUserInfo 获取用户信息
 func GetUserInfo(c *gin.Context) {
-	// 从Cookie中获取token
-	token, err := c.Cookie("token")
-	if err != nil {
-		// 如果没有token，返回400错误
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Token is required", "code": 400})
-		return
-	}
-
 	// 调用服务层的GetUserInfoByToken函数获取用户信息
-	user, err := services.GetUserInfoByToken(token)
+	user, err := services.GetUserInfoByToken(c)
 	if err != nil {
 		// 如果获取失败，返回400错误
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error(), "code": 400})
@@ -127,7 +122,7 @@ func LogoutUser(c *gin.Context) {
 	}
 
 	// 清除cookie
-	c.SetCookie("token", "", -1, "/", "localhost", false, true)
+	services.DeleteCookie(c)
 
 	// 返回登出成功的响应
 	c.JSON(http.StatusOK, gin.H{"message": "用户已登出"})
@@ -137,9 +132,9 @@ func LogoutUser(c *gin.Context) {
 func ResetPassword(c *gin.Context) {
 	// 定义请求结构体，包含密码、邮箱和邮箱验证码
 	var request struct {
-		Password  string `json:"password" binding:"required,min=8"`                    // 密码，必填，最小长度8
-		Email     string `json:"email" binding:"required,email"`                       // 邮箱，必填，必须是有效邮箱格式
-		EmailCode string `json:"emailCode" binding:"required,len=6,regexp=^[0-9]{6}$"` // 邮箱验证码，必填，长度6，必须是数字
+		Password  string `json:"password" binding:"required,min=8"`  // 密码，必填，最小长度8
+		Email     string `json:"email" binding:"required,email"`     // 邮箱，必填，必须是有效邮箱格式
+		EmailCode string `json:"emailCode" binding:"required,len=6"` // 邮箱验证码，必填，长度6，必须是数字
 	}
 
 	// 绑定JSON请求体到结构体，并验证参数

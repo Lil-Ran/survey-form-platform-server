@@ -1,9 +1,7 @@
 package services
 
 import (
-	"errors"
 	"fmt"
-	"net/http"
 	"server/config"
 	"time"
 
@@ -49,22 +47,20 @@ func ValidateJWT(tokenString string) (jwt.MapClaims, error) {
 }
 
 // 设置 Cookie
-func SetCookie(c *gin.Context, userID string) {
+func SetCookie(c *gin.Context, userID string) error {
 	token, err := GenerateJWT(userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to generate token"})
-		return
+		return err
 	}
-
-	c.SetCookie("token", token, int(tokenExpiry.Seconds()), "/", "localhost", true, true)
-	c.JSON(http.StatusOK, gin.H{"message": "Cookie has been set"})
+	c.SetCookie("token", token, int(tokenExpiry.Seconds()), "/", "localhost", false, true)
+	return nil
 }
 
 // 获取 Cookie
 func GetCookie(c *gin.Context) (jwt.MapClaims, error) {
 	token, err := c.Cookie("token")
 	if err != nil {
-		return nil, errors.New("Cookie not found")
+		return nil, err
 	}
 	return ValidateJWT(token)
 }

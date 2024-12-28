@@ -16,6 +16,8 @@ func RegisterAccountRoutes(router *gin.RouterGroup) {
 		accountGroup.POST("/verify", controllers.RequestEmailCode)
 		// 用户登录路由
 		accountGroup.POST("/login", controllers.LoginUser)
+		// 用户信息路由
+		accountGroup.GET("/profile", controllers.GetUserInfo)
 		// 用户退出路由
 		accountGroup.POST("/logout", controllers.LogoutUser)
 		// 用户重置密码路由

@@ -11,5 +11,6 @@ func RegisterRoutes(router *gin.Engine) {
 		RegisterAccountRoutes(apiGroup) // 注册账户相关路由
 		RegisterCookieRoutes(apiGroup)  // 注册 Cookie 相关路由
 		RegisterSurveyRoutes(apiGroup)  // 注册问卷相关路由
+		// RegisterQuestionEditRoutes(apiGroup) // 注册问题路由
 	}
 }

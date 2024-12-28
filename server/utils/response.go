@@ -4,13 +4,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// JSONResponse 统一 JSON 响应
 func JSONResponse(c *gin.Context, statusCode int, message string, data interface{}) {
-	c.JSON(statusCode, gin.H{
+	response := gin.H{
 		"code":    statusCode,
 		"message": message,
-		"data":    data,
-	})
+	}
+
+	// 如果 data 不为 nil，则直接添加到顶层
+	if data != nil {
+		for key, value := range data.(gin.H) {
+			response[key] = value
+		}
+	}
+
+	c.JSON(statusCode, response)
 }
 
 // ErrorResponse 错误响应
