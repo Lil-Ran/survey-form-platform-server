@@ -60,17 +60,17 @@ type Survey struct {
 
 // Question 问题结构体
 type Question struct {
-	QuestionID    string   `gorm:"column:QuestionID;primaryKey"` // 问题ID
-	SurveyID      string   `gorm:"column:SurveyID;index"`        // 问卷ID
-	Title         string   `gorm:"column:Title"`                 // 问题标题
-	Description   string   `gorm:"column:Description"`           // 问题描述
-	LeastChoice   int      `gorm:"column:LeastChoice"`           //最少选择数
-	MaxChoice     int      `gorm:"column:MaxChoice"`             //最多选择数
-	QuestionType  string   `gorm:"column:QuestionType"`          // 问题类型
-	QuestionLabel string   `gorm:"column:QuestionLabel"`         // 问题类型中文
-	OptionIDs     []string `gorm:"type:json"`                    // 问题选项列表
-	TextFillInIDs []string `gorm:"type:json"`                    // 文本填空框
-	NumFillInIDa  []string `gorm:"type:json"`                    // 数字填空类型
+	QuestionID    string `gorm:"column:QuestionID;primaryKey"` // 问题ID
+	SurveyID      string `gorm:"column:SurveyID;index"`        // 问卷ID
+	Title         string `gorm:"column:Title"`                 // 问题标题
+	Description   string `gorm:"column:Description"`           // 问题描述
+	LeastChoice   int    `gorm:"column:LeastChoice"`           //最少选择数
+	MaxChoice     int    `gorm:"column:MaxChoice"`             //最多选择数
+	QuestionType  string `gorm:"column:QuestionType"`          // 问题类型
+	QuestionLabel string `gorm:"column:QuestionLabel"`         // 问题类型中文
+	OptionIDs     string `gorm:"column:OptionIDs"`             // 问题选项列表
+	TextFillInIDs string `gorm:"column:TextFillInIDs"`         // 文本填空框
+	NumFillInIDs  string `gorm:"column:NumFillInIDs"`          // 数字填空类型
 }
 
 // QuestionOption 问题选项结构体
@@ -84,11 +84,13 @@ type QuestionOption struct {
 type QuestionTextFillIn struct {
 	TextFillInID string `gorm:"column:TextFillInID;primaryKey"` // 文本填空ID
 	QuestionID   string `gorm:"column:QuestionID;index"`        // 问题ID
+	SurveyID     string `gorm:"column:SurveyID;index"`          // 问卷ID
 }
 
 type QuestionNumFillIn struct {
 	NumFillInID string `gorm:"column:NumFillInID;primaryKey"` // 数字填空ID
 	QuestionID  string `gorm:"column:QuestionID;index"`       // 问题ID
+	SurveyID    string `gorm:"column:SurveyID;index"`         // 问卷ID
 }
 
 ///====================================================///=============================///===========================================================================

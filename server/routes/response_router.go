@@ -10,9 +10,9 @@ import (
 func RegisterResponseRoutes(router *gin.Engine) {
 	group := router.Group("/api/survey")
 	{
-		group.POST("/:SurveyID", controllers.GetOptionCount)
-		group.POST("/:SurveyID", controllers.GetTextFillinData)
-		group.POST("/:SurveyID", controllers.GetNumFillinData)
+		group.POST("/:SurveyID/GetOption", controllers.GetOptionCount)
+		group.POST("/:SurveyID/GetText", controllers.GetTextFillinData)
+		group.POST("/:SurveyID/GetNum", controllers.GetNumFillinData)
 		group.GET("/:SurveyID", controllers.GetSurveyResponsesHandler)
 	}
 }
