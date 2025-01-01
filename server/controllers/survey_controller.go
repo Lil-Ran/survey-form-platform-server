@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"math/rand"
 	"net/http"
 	"server/common"
 	"server/services"
@@ -34,15 +35,42 @@ func CreateSurvey(c *gin.Context) {
 		return
 	}
 	now := time.Now()
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+	accessID := rng.Intn(900000) + 100000 // 生成六位数字（100000到999999）
 	// 调用服务层创建问卷
+	// 构造问卷对象
 	survey := common.Survey{
-		SurveyID: uuid.New().String(),
-
-		Status:         "Ongoing",
-		Title:          request.Title,
-		CreateTime:     &now,
-		LastUpdateTime: &now,
-		LastUpdateUser: userID,
+		SurveyID:          uuid.New().String(),
+		AccessID:          strconv.Itoa(accessID),
+		Title:             request.Title,
+		Description:       "", // 默认描述为空字符串，可以根据需要调整
+		CreateTime:        now,
+		ExpireTime:        now.AddDate(0, 1, 0), // 默认过期时间为 1 个月后
+		LastUpdateTime:    now,
+		Status:            "Ongoing",
+		ResponseCount:     0,                                                                            // 初始响应数量为 0
+		ThemeColor:        0,                                                                            // 默认主题颜色
+		TextColor:         0,                                                                            // 默认文字颜色
+		PCBackgroundImage: "",                                                                           // 默认背景图片为空
+		PCBannerImage:     "",                                                                           // 默认横幅图片为空
+		Footer:            nil,                                                                          // 页脚默认值为空
+		DisplayStyle:      0,                                                                            // 默认显示样式
+		ButtonText:        nil,                                                                          // 按钮文字默认值为空
+		StartTime:         now,                                                                          // 默认开始时间为当前时间
+		EndTime:           now.AddDate(0, 1, 0),                                                         // 默认结束时间为 1 个月后
+		DayStartTime:      time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()),    // 默认每日开始时间为 00:00
+		DayEndTime:        time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 0, now.Location()), // 默认每日结束时间为 23:59
+		PasswordStrategy:  0,                                                                            // 默认密码策略
+		Password:          "{}",                                                                         // 默认无密码
+		MaxResponseCount:  0,                                                                            // 默认无限制
+		BrowserLimit:      false,                                                                        // 默认不限制浏览器
+		IPLimit:           false,                                                                        // 默认不限制 IP
+		KeepContent:       false,                                                                        // 默认不保留内容
+		FailMessage:       "",                                                                           // 默认失败消息为空
+		ShowAfterSubmit:   0,                                                                            // 默认提交后不显示内容
+		ShowContent:       "",                                                                           // 默认显示内容为空
+		QuestionIDs:       nil,                                                                          // 默认无问题列表
+		ResponseIDs:       nil,                                                                          // 默认无响应列表
 	}
 	if err := services.CreateSurvey(userID, &survey); err != nil {
 		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to create survey")
@@ -89,7 +117,10 @@ func ListSurveys(c *gin.Context) {
 		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve surveys")
 		return
 	}
-
+	// 检查 surveys 是否为空
+	if surveys == nil {
+		surveys = []services.SurveyResponse{} // 将 nil 替换为空数组
+	}
 	utils.SuccessResponse(c, http.StatusOK, "Surveys retrieved successfully", gin.H{
 		"data":   surveys, // surveys 直接作为数组返回
 		"total":  total,   // 总数

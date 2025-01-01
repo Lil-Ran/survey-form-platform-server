@@ -43,17 +43,15 @@ func GetSurveyByID(surveyID string) (*common.Survey, error) {
 
 // ListSurveys 获取用户的问卷列表
 type SurveyResponse struct {
-	SurveyID           string     `json:"surveyId"`
-	AccessID           *string    `json:"accessId"`
-	Title              string     `json:"title"`
-	Status             string     `json:"status"`
-	ResponseCount      int        `json:"responseCount"`
-	OwnerID            string     `json:"ownerId"`
-	OwnerName          string     `json:"ownerName"`
-	CreateTime         *time.Time `json:"createTime"`
-	LastUpdateTime     *time.Time `json:"lastUpdateTime"`
-	LastUpdateUserID   string     `json:"lastUpdataUserID"`
-	LastUpdateUserName string     `json:"lastUpdateUserName"`
+	SurveyID       string    `json:"surveyId"`
+	AccessID       string    `json:"accessId"`
+	Title          string    `json:"title"`
+	Status         string    `json:"status"`
+	ResponseCount  int       `json:"responseCount"`
+	OwnerID        string    `json:"ownerId"`
+	OwnerName      string    `json:"ownerName"`
+	CreateTime     time.Time `json:"createTime"`
+	LastUpdateTime time.Time `json:"lastUpdateTime"`
 }
 
 func ListSurveys(userID string, count, skip int) ([]SurveyResponse, int64, int64, error) {
@@ -81,28 +79,17 @@ func ListSurveys(userID string, count, skip int) ([]SurveyResponse, int64, int64
 			return nil, 0, 0, err
 		}
 
-		// 获取最后更新用户信息
-		var lastUpdateUserName string
-		var lastUpdateUser common.User
-		if survey.LastUpdateUser != "" {
-			if err := common.DB.Where("UserID = ?", survey.LastUpdateUser).First(&lastUpdateUser).Error; err == nil {
-				lastUpdateUserName = lastUpdateUser.UserName
-			}
-		}
-
 		// 构建单个问卷响应
 		responses = append(responses, SurveyResponse{
-			SurveyID:           survey.SurveyID,
-			AccessID:           survey.AccessID,
-			Title:              survey.Title,
-			Status:             survey.Status,
-			ResponseCount:      survey.ResponseCount,
-			OwnerID:            survey.UserID,
-			OwnerName:          owner.UserName,
-			CreateTime:         survey.CreateTime,
-			LastUpdateTime:     survey.LastUpdateTime,
-			LastUpdateUserID:   survey.LastUpdateUser,
-			LastUpdateUserName: lastUpdateUserName,
+			SurveyID:       survey.SurveyID,
+			AccessID:       survey.AccessID,
+			Title:          survey.Title,
+			Status:         survey.Status,
+			ResponseCount:  survey.ResponseCount,
+			OwnerID:        survey.UserID,
+			OwnerName:      owner.UserName,
+			CreateTime:     survey.CreateTime,
+			LastUpdateTime: survey.LastUpdateTime,
 		})
 	}
 
