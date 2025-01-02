@@ -117,5 +117,5 @@ func GetSurveyResponsesHandler(c *gin.Context) {
 		return
 	}
 
-	utils.SuccessResponse(c, http.StatusOK, "Survey responses retrieved successfully", responses)
+	c.JSON(http.StatusOK, responses)
 }

@@ -10,11 +10,11 @@ type QuestionModel struct {
 	Type        string                      `json:"QuestionType"`
 	Label       string                      `json:"QuestionLabel"`
 	QuestionID  string                      `json:"QuestionID"`
-	Title       string                      `json:"title"`
-	Description string                      `json:"Explanation"`
-	LeastChoice int                         `json:"leastChoice"`
-	MaxChoice   int                         `json:"maxChoice"`
-	SurveyID    string                      `json:"surveyId"`
+	Title       string                      `json:"Title"`
+	Description string                      `json:"Description"`
+	LeastChoice int                         `json:"LeastChoice"`
+	MaxChoice   int                         `json:"MaxChoice"`
+	SurveyID    string                      `json:"SurveyID"`
 	Options     []common.QuestionOption     `json:"Options"`
 	NumFillIns  []common.QuestionNumFillIn  `json:"NumFillIns"`
 	TextFillIns []common.QuestionTextFillIn `json:"TextFillIns"`
@@ -28,15 +28,15 @@ type SurveyModel struct {
 }
 
 type ResponseModel struct {
-	ResponseID        string                  `json:"responseid"`
-	SurveyID          string                  `json:"surveyid"`
+	ResponseID        string                  `json:"ResponseID"`
+	SurveyID          string                  `json:"SurveyID"`
 	QuestionsResponse []QuestionResponseModel `json:"questionsResponse"`
 }
 
 type QuestionResponseModel struct {
-	ResponseID  string                      `json:"responseid"`
-	QID         string                      `json:"qid"`
-	Type        string                      `json:"type"`
+	ResponseID  string                      `json:"ResponseID"`
+	QID         string                      `json:"QuestionID"`
+	Type        string                      `json:"QuestionType"`
 	Options     []common.ResponseOption     `json:"Options"`
 	TextFillIns []common.ResponseTextFillIn `json:"TextFillIns"`
 	NumFillIns  []common.ResponseNumFillIn  `json:"NumFillIns"`
@@ -88,12 +88,6 @@ func SubmitSurveyResponseService(response ResponseModel) error {
 	var survey common.Survey
 	if err := common.DB.Where("SurveyID = ?", response.SurveyID).First(&survey).Error; err != nil {
 		return errors.New("survey not found")
-	}
-
-	// 检查是否已存在答卷
-	var existingResponse common.SurveyResponse
-	if err := common.DB.Where("ResponseID = ?", response.ResponseID).First(&existingResponse).Error; err == nil {
-		return errors.New("response already exists")
 	}
 
 	// 保存答卷
@@ -164,6 +158,11 @@ func SubmitSurveyResponseService(response ResponseModel) error {
 			log.Printf("Unsupported question type: %s", question.Type)
 			continue // 跳过未知类型
 		}
+	}
+
+	// 更新问卷的 ResponseCount
+	if err := common.DB.Model(&survey).Update("ResponseCount", survey.ResponseCount+1).Error; err != nil {
+		return errors.New("failed to update survey response count: " + err.Error())
 	}
 
 	return nil

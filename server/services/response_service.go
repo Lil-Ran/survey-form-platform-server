@@ -88,35 +88,42 @@ func GetNumFillinData(surveyID, numFillInID string) ([]int, error) {
 
 // ResponseDetailModel 答卷详情返回模型
 type ResponseDetailModel struct {
-	ResponseID string           `json:"response_id"`
-	SurveyID   string           `json:"survey_id"`
-	Questions  []QuestionDetail `json:"questions"`
+	ResponseID string           `json:"ResponseID"`
+	SurveyID   string           `json:"SurveyID"`
+	Questions  []QuestionDetail `json:"QuestionResponse"`
 }
 
 type QuestionDetail struct {
-	QuestionID   string                   `json:"question_id"`
-	Title        string                   `json:"title"`
-	Description  string                   `json:"description"`
-	QuestionType string                   `json:"question_type"` // 表示题目类型：选择、文本填空或数字填空
-	Options      []OptionDetail           `json:"options,omitempty"`
-	TextFillIns  []ResponseTextFillInData `json:"text_fill_ins,omitempty"`
-	NumFillIns   []ResponseNumFillInData  `json:"num_fill_ins,omitempty"`
+	ResponseID   string                   `json:"ResponseID"`
+	QuestionID   string                   `json:"QuestionID"`
+	Title        string                   `json:"Title"`
+	Description  string                   `json:"Description"`
+	QuestionType string                   `json:"QuestionType"` // 表示题目类型：选择、文本填空或数字填空
+	Options      []OptionDetail           `json:"Options"`
+	TextFillIns  []ResponseTextFillInData `json:"TextFillIns"`
+	NumFillIns   []ResponseNumFillInData  `json:"NumFillIns"`
 }
 
 type OptionDetail struct {
-	OptionID      string `json:"option_id"`
-	OptionContent string `json:"option_content"`
-	IsSelected    bool   `json:"is_selected"`
+	ResponseID    string `json:"ResponseID"`
+	OptionID      string `json:"OptionID"`
+	OptionContent string `json:"OptionContent"`
+	QuestionID    string `json:"QuestionID"`
+	IsSelect      bool   `json:"IsSelect"`
 }
 
 type ResponseTextFillInData struct {
-	TextFillInID string `json:"text_fill_in_id"`
-	Content      string `json:"content"`
+	ResponseID   string `json:"ResponseID"`
+	TextFillInID string `json:"TextFillInID"`
+	QuestionID   string `json:"QuestionID"`
+	TextContent  string `json:"TextContent"`
 }
 
 type ResponseNumFillInData struct {
-	NumFillInID string `json:"num_fill_in_id"`
-	Content     int    `json:"content"`
+	ResponseID  string `json:"ResponseID"`
+	NumFillInID string `json:"NumFillInID"`
+	QuestionID  string `json:"QuestionID"`
+	NumContent  int    `json:"NumContent"`
 }
 
 // GetSurveyResponses 获取指定问卷的所有答卷内容
@@ -146,6 +153,7 @@ func GetSurveyResponses(surveyID string) ([]ResponseDetailModel, error) {
 		var questionDetails []QuestionDetail
 		for _, question := range questions {
 			questionDetail := QuestionDetail{
+				ResponseID:   response.ResponseID,
 				QuestionID:   question.QuestionID,
 				Title:        question.Title,
 				Description:  question.Description,
@@ -158,34 +166,48 @@ func GetSurveyResponses(surveyID string) ([]ResponseDetailModel, error) {
 				if err := common.DB.Where("QuestionID = ? AND ResponseID = ?", question.QuestionID, response.ResponseID).Find(&options).Error; err == nil {
 					for _, option := range options {
 						questionDetail.Options = append(questionDetail.Options, OptionDetail{
+							ResponseID:    option.ResponseID,
 							OptionID:      option.OptionID,
 							OptionContent: option.OptionContent,
-							IsSelected:    option.IsSelect,
+							QuestionID:    option.QuestionID,
+							IsSelect:      option.IsSelect,
 						})
 					}
 				}
+				questionDetail.TextFillIns = []ResponseTextFillInData{}
+				questionDetail.NumFillIns = []ResponseNumFillInData{}
 			case "SingleTextFillIn", "MultiTextFillIn": // 单文本填空/多文本填空
 				var textFillIns []common.ResponseTextFillIn
 				if err := common.DB.Where("QuestionID = ? AND ResponseID = ?", question.QuestionID, response.ResponseID).Find(&textFillIns).Error; err == nil {
 					for _, text := range textFillIns {
 						questionDetail.TextFillIns = append(questionDetail.TextFillIns, ResponseTextFillInData{
+							ResponseID:   text.ResponseID,
 							TextFillInID: text.TextFillInID,
-							Content:      text.TextContent,
+							QuestionID:   text.QuestionID,
+							TextContent:  text.TextContent,
 						})
 					}
 				}
+				questionDetail.Options = []OptionDetail{}
+				questionDetail.NumFillIns = []ResponseNumFillInData{}
 			case "SingleNumFillIn", "MultiNumFillIn": // 单数字填空/多数字填空
 				var numFillIns []common.ResponseNumFillIn
 				if err := common.DB.Where("QuestionID = ? AND ResponseID = ?", question.QuestionID, response.ResponseID).Find(&numFillIns).Error; err == nil {
 					for _, num := range numFillIns {
 						questionDetail.NumFillIns = append(questionDetail.NumFillIns, ResponseNumFillInData{
+							ResponseID:  num.ResponseID,
 							NumFillInID: num.NumFillInID,
-							Content:     num.NumContent,
+							QuestionID:  num.QuestionID,
+							NumContent:  num.NumContent,
 						})
 					}
 				}
+				questionDetail.Options = []OptionDetail{}
+				questionDetail.TextFillIns = []ResponseTextFillInData{}
 			default:
-				continue
+				questionDetail.Options = []OptionDetail{}
+				questionDetail.TextFillIns = []ResponseTextFillInData{}
+				questionDetail.NumFillIns = []ResponseNumFillInData{}
 			}
 
 			questionDetails = append(questionDetails, questionDetail)
