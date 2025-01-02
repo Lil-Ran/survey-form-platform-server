@@ -1,0 +1,28 @@
+# 数据库配置
+datasource:
+  driverName: mysql
+  host: 127.0.0.1
+  port: 3306
+  username: xxxxxx
+  password: xxxxxx
+  dbname: xxxxxx
+  charset: utf8mb4
+
+# 服务器配置
+server:
+  host: 0.0.0.0
+  port: 8080
+  enable_https: false
+  log_level: info
+
+# 认证和授权配置
+auth:
+  jwt_secret: xxxxxx
+  token_expiry: 24h
+
+# SMTP 配置
+smtp:
+  from: xxxxxx@example.com
+  password: xxxxxx
+  host: smtp.example.com
+  port: 587
