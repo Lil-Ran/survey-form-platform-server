@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"server/services"
 
@@ -51,6 +52,8 @@ func SubmitSurveyResponseController(c *gin.Context) {
 		})
 		return
 	}
+
+	fmt.Printf("ResponseModel: %+v\n", responseModel)
 
 	// 校验 surveyId 是否一致
 	if responseModel.SurveyID != surveyId {

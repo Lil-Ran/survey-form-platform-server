@@ -153,7 +153,7 @@ func GetSurveyResponses(surveyID string) ([]ResponseDetailModel, error) {
 			}
 
 			switch question.QuestionType {
-			case "SingleChoice": // 选择题
+			case "SingleChoice", "MultiChoice": // 单选/多选
 				var options []common.ResponseOption
 				if err := common.DB.Where("QuestionID = ? AND ResponseID = ?", question.QuestionID, response.ResponseID).Find(&options).Error; err == nil {
 					for _, option := range options {
@@ -164,7 +164,7 @@ func GetSurveyResponses(surveyID string) ([]ResponseDetailModel, error) {
 						})
 					}
 				}
-			case "SingleTextFillIn": // 文本填空题
+			case "SingleTextFillIn", "MultiTextFillIn": // 单文本填空/多文本填空
 				var textFillIns []common.ResponseTextFillIn
 				if err := common.DB.Where("QuestionID = ? AND ResponseID = ?", question.QuestionID, response.ResponseID).Find(&textFillIns).Error; err == nil {
 					for _, text := range textFillIns {
@@ -174,7 +174,7 @@ func GetSurveyResponses(surveyID string) ([]ResponseDetailModel, error) {
 						})
 					}
 				}
-			case "SingleNumFillIn": // 数字填空题
+			case "SingleNumFillIn", "MultiNumFillIn": // 单数字填空/多数字填空
 				var numFillIns []common.ResponseNumFillIn
 				if err := common.DB.Where("QuestionID = ? AND ResponseID = ?", question.QuestionID, response.ResponseID).Find(&numFillIns).Error; err == nil {
 					for _, num := range numFillIns {
