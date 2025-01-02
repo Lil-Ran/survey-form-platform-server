@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"log"
 	"server/common"
 )
 
@@ -33,9 +34,12 @@ type ResponseModel struct {
 }
 
 type QuestionResponseModel struct {
-	ResponseID string `json:"responseid"`
-	QID        string `json:"qid"`
-	Type       string `json:"type"`
+	ResponseID  string                      `json:"responseid"`
+	QID         string                      `json:"qid"`
+	Type        string                      `json:"type"`
+	Options     []common.ResponseOption     `json:"Options"`
+	TextFillIns []common.ResponseTextFillIn `json:"TextFillIns"`
+	NumFillIns  []common.ResponseNumFillIn  `json:"NumFillIns"`
 }
 
 // GetRespondentQuestionsController 获取问卷及问题
@@ -79,33 +83,86 @@ func GetRespondentQuestionsController(surveyId string) (*SurveyModel, error) {
 	}, nil
 }
 
-// SubmitSurveyResponseService 保存答卷
 func SubmitSurveyResponseService(response ResponseModel) error {
 	// 检查问卷是否存在
 	var survey common.Survey
-	err := common.DB.Where("SurveyID = ?", response.SurveyID).First(&survey).Error
-	if err != nil {
+	if err := common.DB.Where("SurveyID = ?", response.SurveyID).First(&survey).Error; err != nil {
 		return errors.New("survey not found")
 	}
 
+	// 检查是否已存在答卷
+	var existingResponse common.SurveyResponse
+	if err := common.DB.Where("ResponseID = ?", response.ResponseID).First(&existingResponse).Error; err == nil {
+		return errors.New("response already exists")
+	}
+
 	// 保存答卷
-	var surveyResponse common.SurveyResponse
-	surveyResponse.ResponseID = response.ResponseID
-	surveyResponse.SurveyID = response.SurveyID
-	err = common.DB.Create(&surveyResponse).Error
-	if err != nil {
-		return errors.New("failed to save response")
+	surveyResponse := common.SurveyResponse{
+		ResponseID: response.ResponseID,
+		SurveyID:   response.SurveyID,
+	}
+	if err := common.DB.Create(&surveyResponse).Error; err != nil {
+		return errors.New("failed to save survey response: " + err.Error())
 	}
 
 	// 保存问题答卷
 	for _, question := range response.QuestionsResponse {
-		var questionResponse common.QuestionResponse
-		questionResponse.ResponseID = response.ResponseID
-		questionResponse.QuestionID = question.QID
-		questionResponse.SurveyID = response.SurveyID
-		err := common.DB.Create(&questionResponse).Error
-		if err != nil {
-			return errors.New("failed to save question response")
+		// 初始化字段，避免 nil 数据
+		if question.Options == nil {
+			question.Options = []common.ResponseOption{}
+		}
+		if question.TextFillIns == nil {
+			question.TextFillIns = []common.ResponseTextFillIn{}
+		}
+		if question.NumFillIns == nil {
+			question.NumFillIns = []common.ResponseNumFillIn{}
+		}
+
+		switch question.Type {
+		case "SingleChoice", "MultiChoice": // 单选/多选题
+			for _, option := range question.Options {
+
+				responseOption := common.ResponseOption{
+					ResponseID:    response.ResponseID,
+					OptionID:      option.OptionID,
+					QuestionID:    question.QID,
+					SurveyID:      response.SurveyID,
+					OptionContent: option.OptionContent,
+					IsSelect:      option.IsSelect,
+				}
+				if err := common.DB.Create(&responseOption).Error; err != nil {
+					return errors.New("failed to save response option: " + err.Error())
+				}
+			}
+		case "SingleTextFillIn", "MultiTextFillIn": // 单文本/多文本填空题
+			for _, textFillIn := range question.TextFillIns {
+				responseTextFillIn := common.ResponseTextFillIn{
+					ResponseID:   response.ResponseID,
+					TextFillInID: textFillIn.TextFillInID,
+					QuestionID:   question.QID,
+					SurveyID:     response.SurveyID,
+					TextContent:  textFillIn.TextContent,
+				}
+				if err := common.DB.Create(&responseTextFillIn).Error; err != nil {
+					return errors.New("failed to save text fill-in response: " + err.Error())
+				}
+			}
+		case "SingleNumFillIn", "MultiNumFillIn": // 单数字/多数字填空题
+			for _, numFillIn := range question.NumFillIns {
+				responseNumFillIn := common.ResponseNumFillIn{
+					ResponseID:  response.ResponseID,
+					NumFillInID: numFillIn.NumFillInID,
+					QuestionID:  question.QID,
+					SurveyID:    response.SurveyID,
+					NumContent:  numFillIn.NumContent,
+				}
+				if err := common.DB.Create(&responseNumFillIn).Error; err != nil {
+					return errors.New("failed to save number fill-in response: " + err.Error())
+				}
+			}
+		default:
+			log.Printf("Unsupported question type: %s", question.Type)
+			continue // 跳过未知类型
 		}
 	}
 

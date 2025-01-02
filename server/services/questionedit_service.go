@@ -231,7 +231,7 @@ func SaveSurveyEditService(surveyId string, surveyData *SurveyModel) error {
 		for _, textFillIn := range question.TextFillIns {
 			newTextFillIn := common.QuestionTextFillIn{
 				TextFillInID: textFillIn.TextFillInID,
-				QuestionID:   textFillIn.QuestionID,
+				QuestionID:   question.QuestionID,
 				SurveyID:     surveyId,
 			}
 			err = common.DB.Create(&newTextFillIn).Error
@@ -244,7 +244,7 @@ func SaveSurveyEditService(surveyId string, surveyData *SurveyModel) error {
 		for _, numFillIn := range question.NumFillIns {
 			newNumFillIn := common.QuestionNumFillIn{
 				NumFillInID: numFillIn.NumFillInID,
-				QuestionID:  numFillIn.QuestionID,
+				QuestionID:  question.QuestionID,
 				SurveyID:    surveyId,
 			}
 			err = common.DB.Create(&newNumFillIn).Error
