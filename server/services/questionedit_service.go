@@ -129,7 +129,7 @@ func GetSurveyQuestionsService(surveyId string) (*SurveyModel, error) {
 	return &SurveyModel{
 		ID:        survey.SurveyID,
 		Title:     survey.Title,
-		IsOpening: survey.Status == "open",
+		IsOpening: survey.Status == "Ongoing",
 		Questions: questionModels,
 	}, nil
 }
@@ -145,10 +145,8 @@ func SaveSurveyEditService(surveyId string, surveyData *SurveyModel) error {
 
 	// 更新问卷信息
 	survey.Title = surveyData.Title
-	survey.Status = "open" // 根据 isopening 更新状态
-	if !surveyData.IsOpening {
-		survey.Status = "closed"
-	}
+	survey.Status = "Ongoing"
+
 	err = common.DB.Save(&survey).Error
 	if err != nil {
 		return errors.New("failed to update survey")
@@ -294,6 +292,30 @@ func DeleteSurveyService(surveyId string) error {
 	err = common.DB.Where("SurveyID = ?", surveyId).Delete(&common.Survey{}).Error
 	if err != nil {
 		return errors.New("failed to delete survey")
+	}
+
+	// 删除问卷相关联的答卷选项
+	err = common.DB.Where("SurveyID = ?", surveyId).Delete(&common.ResponseOption{}).Error
+	if err != nil {
+		return errors.New("failed to delete response options related to the survey")
+	}
+
+	// 删除问卷相关联的文本填空答卷
+	err = common.DB.Where("SurveyID = ?", surveyId).Delete(&common.ResponseTextFillIn{}).Error
+	if err != nil {
+		return errors.New("failed to delete response text fill-ins related to the survey")
+	}
+
+	// 删除问卷相关联的答卷
+	err = common.DB.Where("SurveyID = ?", surveyId).Delete(&common.SurveyResponse{}).Error
+	if err != nil {
+		return errors.New("failed to delete survey responses related to the survey")
+	}
+
+	// 删除问卷相关联的数字填空答卷
+	err = common.DB.Where("SurveyID = ?", surveyId).Delete(&common.ResponseNumFillIn{}).Error
+	if err != nil {
+		return errors.New("failed to delete response num fill-ins related to the survey")
 	}
 
 	return nil
