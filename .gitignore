@@ -735,3 +735,5 @@ FodyWeavers.xsd
 /.vs
 
 /server/config/application.yml
+/server/compose.yml
+/server/data

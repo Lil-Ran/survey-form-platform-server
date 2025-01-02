@@ -1,0 +1,19 @@
+services:
+  survey-server:
+    build: .
+    restart: always
+    ports:
+      - "80:8080"
+    volumes:
+      - "./config/application.yml:/app/config/application.yml:ro"
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.4.3
+    restart: always
+    environment:
+      - "MYSQL_ROOT_PASSWORD=<PA$$W0RD>"
+      - "MYSQL_DATABASE=survey"
+    volumes:
+      - "./data/db:/var/lib/mysql"
