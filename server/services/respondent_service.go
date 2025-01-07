@@ -30,7 +30,7 @@ type SurveyModel struct {
 type ResponseModel struct {
 	ResponseID        string                  `json:"ResponseID"`
 	SurveyID          string                  `json:"SurveyID"`
-	QuestionsResponse []QuestionResponseModel `json:"questionsResponse"`
+	QuestionsResponse []QuestionResponseModel `json:"QuestionResponse"`
 }
 
 type QuestionResponseModel struct {
