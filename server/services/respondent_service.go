@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"server/common"
+	"strings"
 )
 
 type QuestionModel struct {
@@ -52,13 +53,37 @@ func GetRespondentQuestionsController(surveyId string) (*SurveyModel, error) {
 		return nil, errors.New("survey not found")
 	}
 
+	// 将 QuestionIDs 转换为问题 ID 的数组
+	questionIDArray := strings.Split(survey.QuestionIDs, ",")
+
 	// 从 QuestionIDs 中逐个查询 Question 表
 	questions := make([]QuestionModel, 0)
-	for _, questionID := range survey.QuestionIDs {
+	for _, questionID := range questionIDArray {
 		var question common.Question
 		err := common.DB.Where("QuestionID = ?", questionID).First(&question).Error
 		if err != nil {
 			return nil, errors.New("Failed to find question: " + questionID)
+		}
+
+		// 查询选项
+		var options []common.QuestionOption
+		err = common.DB.Where("QuestionID = ? AND SurveyID = ?", question.QuestionID, surveyId).Find(&options).Error
+		if err != nil {
+			return nil, errors.New("Options not found for question " + question.QuestionID)
+		}
+
+		// 查询数字填空
+		var numFillIns []common.QuestionNumFillIn
+		err = common.DB.Where("QuestionID = ? AND SurveyID = ?", question.QuestionID, surveyId).Find(&numFillIns).Error
+		if err != nil {
+			return nil, errors.New("NumFillIns not found for question " + question.QuestionID)
+		}
+
+		// 查询文本填空
+		var textFillIns []common.QuestionTextFillIn
+		err = common.DB.Where("QuestionID = ? AND SurveyID = ?", question.QuestionID, surveyId).Find(&textFillIns).Error
+		if err != nil {
+			return nil, errors.New("TextFillIns not found for question " + question.QuestionID)
 		}
 
 		// 将 Question 转换为 QuestionModel
@@ -71,6 +96,9 @@ func GetRespondentQuestionsController(surveyId string) (*SurveyModel, error) {
 			LeastChoice: question.LeastChoice,
 			MaxChoice:   question.MaxChoice,
 			SurveyID:    question.SurveyID,
+			Options:     options,     // 直接使用查询结果，无需再构建
+			NumFillIns:  numFillIns,  // 直接使用查询结果，无需再构建
+			TextFillIns: textFillIns, // 直接使用查询结果，无需再构建
 		})
 	}
 

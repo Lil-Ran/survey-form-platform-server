@@ -69,7 +69,7 @@ func CreateSurvey(c *gin.Context) {
 		FailMessage:       "",                                                                           // 默认失败消息为空
 		ShowAfterSubmit:   0,                                                                            // 默认提交后不显示内容
 		ShowContent:       "",                                                                           // 默认显示内容为空
-		QuestionIDs:       nil,                                                                          // 默认无问题列表
+		QuestionIDs:       "{}",                                                                         // 默认无问题列表
 		ResponseIDs:       nil,                                                                          // 默认无响应列表
 	}
 	if err := services.CreateSurvey(userID, &survey); err != nil {
