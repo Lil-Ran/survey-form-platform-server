@@ -3,9 +3,9 @@ datasource:
   driverName: mysql
   host: 127.0.0.1
   port: 3306
-  username: root
-  password: Oracle@1023
-  dbname: survey
+  username: xxxxxx
+  password: xxxxxx
+  dbname: xxxxxx
   charset: utf8mb4
 
 # 服务器配置
@@ -17,12 +17,12 @@ server:
 
 # 认证和授权配置
 auth:
-  jwt_secret: s8w6kcLR2lKs6eO4D2hwH8ZfzPfF9hNxTw2y5I6l8xDLsb8p/JFg==
+  jwt_secret: xxxxxx
   token_expiry: 24h
 
 # SMTP 配置
 smtp:
-  from: "3299098756@qq.com"
-  password: "ckbbgtcpwhaycjei"
-  host: "smtp.qq.com"
-  port: "587"
+  from: xxxxxx@example.com
+  password: xxxxxx
+  host: smtp.example.com
+  port: 587
