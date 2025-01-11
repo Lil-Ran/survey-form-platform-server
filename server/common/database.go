@@ -54,7 +54,7 @@ type Survey struct {
 	FailMessage       string    `gorm:"column:FailMessage"`                 // 失败消息
 	ShowAfterSubmit   int       `gorm:"column:ShowAfterSubmit"`             // 提交后显示
 	ShowContent       string    `gorm:"column:ShowContent"`                 // 显示内容
-	QuestionIDs       []string  `gorm:"type:json"`                          // 问卷中的问题列表
+	QuestionIDs       string    `gorm:"column:QuestionIDsList"`             // 问卷中的问题列表
 	ResponseIDs       []string  `gorm:"type:json"`                          // 问卷的响应列表
 }
 
