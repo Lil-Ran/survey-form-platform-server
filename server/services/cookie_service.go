@@ -52,7 +52,7 @@ func SetCookie(c *gin.Context, userID string) error {
 	if err != nil {
 		return err
 	}
-	c.SetCookie("token", token, int(tokenExpiry.Seconds()), "/", "localhost", false, true)
+	c.SetCookie("token", token, int(tokenExpiry.Seconds()), "/", c.Request.Host, false, true)
 	return nil
 }
 
@@ -67,6 +67,6 @@ func GetCookie(c *gin.Context) (jwt.MapClaims, error) {
 
 // 删除 Cookie
 func DeleteCookie(c *gin.Context) {
-	c.SetCookie("token", "", -1, "/", "localhost", true, true)
+	c.SetCookie("token", "", -1, "/", c.Request.Host, true, true)
 	// c.JSON(http.StatusOK, gin.H{"message": "Cookie has been deleted"})
 }
