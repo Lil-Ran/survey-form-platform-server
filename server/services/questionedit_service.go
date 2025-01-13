@@ -158,23 +158,44 @@ func GetSurveyQuestionsService(surveyId string) (*SurveyModel, error) {
 
 		// 查询选项
 		var options []common.QuestionOption
-		err = common.DB.Where("QuestionID = ? AND SurveyID = ?", question.QuestionID, surveyId).Find(&options).Error
-		if err != nil {
-			return nil, errors.New("Options not found for question " + question.QuestionID)
+		if question.OptionIDs != "" {
+			optionIDs := strings.Split(question.OptionIDs, ",")
+			for _, optionID := range optionIDs {
+				var option common.QuestionOption
+				err := common.DB.Where("OptionID = ? AND SurveyID = ?", optionID, surveyId).First(&option).Error
+				if err != nil {
+					return nil, errors.New("Option not found for optionID: " + optionID)
+				}
+				options = append(options, option)
+			}
 		}
 
 		// 查询数字填空
 		var numFillIns []common.QuestionNumFillIn
-		err = common.DB.Where("QuestionID = ? AND SurveyID = ?", question.QuestionID, surveyId).Find(&numFillIns).Error
-		if err != nil {
-			return nil, errors.New("NumFillIns not found for question " + question.QuestionID)
+		if question.NumFillInIDs != "" {
+			numFillInIDs := strings.Split(question.NumFillInIDs, ",")
+			for _, numFillInID := range numFillInIDs {
+				var numFillIn common.QuestionNumFillIn
+				err := common.DB.Where("NumFillInID = ? AND SurveyID = ?", numFillInID, surveyId).First(&numFillIn).Error
+				if err != nil {
+					return nil, errors.New("NumFillIn not found for NumFillInID: " + numFillInID)
+				}
+				numFillIns = append(numFillIns, numFillIn)
+			}
 		}
 
 		// 查询文本填空
 		var textFillIns []common.QuestionTextFillIn
-		err = common.DB.Where("QuestionID = ? AND SurveyID = ?", question.QuestionID, surveyId).Find(&textFillIns).Error
-		if err != nil {
-			return nil, errors.New("TextFillIns not found for question " + question.QuestionID)
+		if question.TextFillInIDs != "" {
+			textFillInIDs := strings.Split(question.TextFillInIDs, ",")
+			for _, textFillInID := range textFillInIDs {
+				var textFillIn common.QuestionTextFillIn
+				err := common.DB.Where("TextFillInID = ? AND SurveyID = ?", textFillInID, surveyId).First(&textFillIn).Error
+				if err != nil {
+					return nil, errors.New("TextFillIn not found for TextFillInID: " + textFillInID)
+				}
+				textFillIns = append(textFillIns, textFillIn)
+			}
 		}
 
 		// 将 Question 转换为 QuestionModel
@@ -236,6 +257,26 @@ func SaveSurveyEditService(surveyId string, surveyData *SurveyModel) error {
 	err = common.DB.Where("SurveyID = ?", surveyId).Delete(&common.QuestionNumFillIn{}).Error
 	if err != nil {
 		return errors.New("failed to delete old num fill-ins")
+	}
+	err = common.DB.Where("SurveyID = ?", surveyId).Delete(&common.QuestionResponse{}).Error
+	if err != nil {
+		return errors.New("failed to delete old responsequestion fill-ins")
+	}
+	err = common.DB.Where("SurveyID = ?", surveyId).Delete(&common.ResponseOption{}).Error
+	if err != nil {
+		return errors.New("failed to delete old responseoption fill-ins")
+	}
+	err = common.DB.Where("SurveyID = ?", surveyId).Delete(&common.ResponseTextFillIn{}).Error
+	if err != nil {
+		return errors.New("failed to delete old responsetext fill-ins")
+	}
+	err = common.DB.Where("SurveyID = ?", surveyId).Delete(&common.ResponseNumFillIn{}).Error
+	if err != nil {
+		return errors.New("failed to delete old responsenumfill fill-ins")
+	}
+	err = common.DB.Where("SurveyID = ?", surveyId).Delete(&common.SurveyResponse{}).Error
+	if err != nil {
+		return errors.New("failed to delete old response fill-ins")
 	}
 
 	// 存储问题 ID 的列表
