@@ -274,10 +274,19 @@ func SaveSurveyEditService(surveyId string, surveyData *SurveyModel) error {
 	if err != nil {
 		return errors.New("failed to delete old responsenumfill fill-ins")
 	}
-	err = common.DB.Where("SurveyID = ?", surveyId).Delete(&common.SurveyResponse{}).Error
+	err = common.DB.Debug().Where("SurveyID = ?", surveyId).Delete(&common.SurveyResponse{}).Error
 	if err != nil {
 		return errors.New("failed to delete old response fill-ins")
 	}
+	//清空 Survey 中的 ResponseCount 字段
+	err = common.DB.Debug().Model(&survey).Where("SurveyID = ?", surveyId).Update("ResponseCount", 0).Error
+	if err != nil {
+		return errors.New("failed to reset response count")
+	}
+
+	// if err := common.DB.Model(&survey).Where("SurveyID = ?", surveyId).Update("ResponseCount", survey.ResponseCount+1).Error; err != nil {
+	// 	return errors.New("failed to update survey response count: " + err.Error())
+	// }
 
 	// 存储问题 ID 的列表
 	questionIDs := []string{}
